@@ -1,6 +1,6 @@
-# docker-upx-multiarch
+# docker-ngrok-multiarch
 
-UPX container image with multi plateform support
+ ngrok multiarch scratch container image
 
 supported plateforms
 
@@ -15,13 +15,8 @@ supported plateforms
 
 ## Usage
 
-```docker run --rm -it -v $(pwd):/app/ pratikbalar/upx app```
-
-
-> **NOTE**: xz utils was not available for all architecture in alpine so created [pratikbalar/tarrer](https://github.com/pratikbalar/tarrer) utility (size around `4MB`) in golang that can extract `br`, `bz2`, `zip`, `gz`, `lz4`, `sz`, `xz`, `zstd` archives.
-> > thanks to [mholt/archiver](https://github.com/mholt/archiver)
+```docker run --rm -it pratikbalar/nginx http 80```
 
 ---
 
 **May the Source Be With You**
-# docker-ngork-multiarch

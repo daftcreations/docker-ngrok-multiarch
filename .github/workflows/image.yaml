@@ -44,7 +44,7 @@ jobs:
             type=raw,value=${{ env.NGROK_VERSION }}
             type=raw,value=latest
           labels: |
-            org.opencontainers.image.title=upx
+            org.opencontainers.image.title=ngrok
             org.opencontainers.image.base.name=scratch
             org.opencontainers.image.authors=pratikbalar
             org.opencontainers.image.licenses=Apache-2.0
