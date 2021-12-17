@@ -1,4 +1,4 @@
-name: build
+name: dockerhub-readme
 
 on:
   push:
