@@ -21,7 +21,7 @@ RUN set -x; \
   version="${NGROK_VERSION}"; \
   curl -Ls 'https://bin.equinox.io/c/'${NGROK_VERSION}'/ngrok-stable-'${TARGETOS}'-'${TARGETARCH}'.tgz' -o - | tar -xvzf - -C .; \
   upx -9 ngrok || true
-RUN ./ngrok update
+# RUN ./ngrok update
 FROM scratch
 WORKDIR /home
 ENV HOME /home
