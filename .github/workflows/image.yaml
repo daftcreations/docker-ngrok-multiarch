@@ -41,7 +41,7 @@ jobs:
           images: |
             ${{ env.DOCKERHUB_SLUG }}
           tags: |
-            type=raw,value=${{ env.NGROK_VERSION }}
+            type=raw,value=2.3.40
             type=raw,value=latest
           labels: |
             org.opencontainers.image.title=ngrok
