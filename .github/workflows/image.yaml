@@ -14,43 +14,16 @@ on:
     paths-ignore:
       - "**.md"
 
-env:
-  DOCKERHUB_SLUG: pratikimprowise/ngrok
-  NGROK_VERSION: "4VmDzA7iaHb"
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-        with:
-          image: tonistiigi/binfmt:latest
-          platforms: all
+      - uses: docker/setup-qemu-action@v1
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+      - uses: docker/setup-buildx-action@v1
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: |
-            ${{ env.DOCKERHUB_SLUG }}
-          tags: |
-            type=raw,value=${{ env.NGROK_VERSION }}
-            type=raw,value=latest
-          labels: |
-            org.opencontainers.image.title=ngrok
-            org.opencontainers.image.base.name=scratch
-            org.opencontainers.image.authors=pratikbalar
-            org.opencontainers.image.licenses=Apache-2.0
-            org.opencontainers.image.description=ngrok multiarch container
-            org.opencontainers.image.version=${{ env.NGROK_VERSION }}
-            org.opencontainers.image.source=https://github.com/pratikbalar/docker-ngrok-multiarch
 
       - name: Login to DockerHub
         if: github.event_name != 'pull_request'
@@ -60,15 +33,15 @@ jobs:
           password: ${{ secrets.DOCKER_PASS }}
 
       - name: Build and push
-        uses: docker/build-push-action@v2
+        uses: docker/bake-action@master
+        # env:
+        #   VERSION: ${{ steps.vars.outputs.version }}
         with:
-          context: .
-          platforms: |
-            linux/amd64
+          targets: |
+            image-all
+            image-slim-all
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          build-args: |
-            NGROK_VERSION=${{ env.NGROK_VERSION }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          files: docker-bake.hcl
+          set: |
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
