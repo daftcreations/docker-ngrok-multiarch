@@ -2,7 +2,7 @@ name: ngrok-version
 
 on:
   schedule:
-    - */10 * * * *
+    - cron: "*/13 * * * *"
 
 jobs:
   ngrok-version:
