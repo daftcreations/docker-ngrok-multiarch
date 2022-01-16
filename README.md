@@ -61,6 +61,28 @@ COPY --from=ngork /usr/local/bin/ngrok /usr/local/bin/ngrok
 RUN ngork --version
 ```
 
+## Local
+
+> Create docker buildx builder if using first time
+> ```docker buildx create --use```
+
+```shell
+git clone --depth 1 https://github.com/pratikbalar/tarrer.git tarrer
+cd tarrer
+
+## Build local image
+docker buildx bake
+
+## Build local slim image
+docker buildx bake image-slim
+
+## Build multi-platform image
+docker buildx bake image-all
+
+## Build multi-platform slim image
+docker buildx bake image-all-slim
+```
+
 ---
 
 **May the Source Be With You**

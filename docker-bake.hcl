@@ -83,6 +83,6 @@ target "image-all" {
 }
 
 # Creating slim container image for all platforms
-target "image-slim-all" {
+target "image-all-slim" {
   inherits = ["_common", "image-platform", "_slim", "_labels"]
 }
