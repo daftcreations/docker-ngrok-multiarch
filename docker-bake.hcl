@@ -1,7 +1,3 @@
-variable "NGROK_VERSION" {
-  default = "1.17"
-}
-
 variable "REPO" {
   default = "pratikimprowise/ngrok"
 }
@@ -20,14 +16,14 @@ variable "TAGS" {
 variable "TAGS_SLIM" {
   default = [
     "${REPO}:slim",
-    "${REPO}:slim-edge",
-    "${REPO}:slim-${VERSION}",
+    "${REPO}:edge-slim",
+    "${REPO}:${VERSION}-slim",
   ]
 }
 
 target "_common" {
   args = {
-    NGROK_VERSION   = NGROK_VERSION
+    NGROK_VERSION = VERSION
   }
 }
 
@@ -50,7 +46,7 @@ target "_slim" {
 }
 
 target "_fat" {
-  tags   = TAGS
+  tags = TAGS
 }
 
 target "image-platform" {

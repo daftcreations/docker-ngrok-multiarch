@@ -24,7 +24,7 @@ RUN curl -Ls 'https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-'${TARGETOS}'-'$
 
 FROM builder AS bin-slim
 COPY --from=upx / /
-RUN upx -v --ultra-brute --best ngrok
+RUN upx -v --ultra-brute --best ngrok || true
 
 FROM scratch as slim
 COPY --from=builder  /etc/passwd /etc/passwd

@@ -1,0 +1,44 @@
+name: ngrok-version
+
+on:
+  schedule:
+    - */10 * * * *
+
+jobs:
+  ngrok-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: ngrok version
+        id: vars
+        shell: bash
+        run: |
+          set -x
+          curl -Ls 'https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.tgz' -o - | tar -xvzf - -C .
+          ./ngrok --version | awk '{print$3}' > .github/ngork_version
+          echo ::set-output name=changed::false
+          if [[ -n $(git diff .github/ngork_version) ]]; then
+            echo ::set-output name=ngrok_version::$(cat .github/ngork_version)
+            echo ::set-output name=changed::true
+          fi
+
+      - name: Commit changes
+        if: ${{ steps.vars.outputs.changed }}
+        uses: EndBug/add-and-commit@v7
+        with:
+          author_name: pratikbalar
+          author_email: <pratikbalar@users.noreply.github.com>
+          committer_name: pratikbalar
+          committer_email: <pratikbalar@users.noreply.github.com>
+          message: "bump: ngrok version"
+          add: ".github/ngork_version"
+
+      - name: Repository Dispatch
+        if: ${{ steps.vars.outputs.changed }}
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: pratikbalar/docker-ngrok-multiarch
+          event-type: ngork_version
+          client-payload: '{"ngork_version": "${{ steps.vars.outputs.ngrok_version }}"}'
