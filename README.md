@@ -1,6 +1,10 @@
 # docker-ngrok-multiarch
 
- ngrok multiarch scratch container image
+Ngrok scratch container image
+
+> Slim variant is availabe, compressed through [UPX](https://github.com/upx/upx).
+> Original binary size ~`29MB`
+> Slim varient size ~`12MB`
 
 supported plateforms
 
@@ -16,6 +20,68 @@ supported plateforms
 ## Usage
 
 ```docker run --rm -it pratikimprowise/nginx http 80```
+
+- Slim
+
+  ```docker run --rm -it pratikbalar/nginx:slim http 80```
+
+### Use it in Container
+
+```Dockerfile
+FROM pratikimprowise/ngork:latest AS ngrok
+FROM alpine:3.15
+COPY --from=ngork /usr/local/bin/ngrok /usr/local/bin/ngrok
+RUN ngork --version
+```
+
+#### Slim variant
+
+```Dockerfile
+FROM pratikimprowise/ngork:slim AS ngrok
+FROM alpine:3.15
+COPY --from=ngork /usr/local/bin/ngrok /usr/local/bin/ngrok
+RUN ngork --version
+```
+
+### Buildx
+
+```Dockerfile
+FROM --platform=$BUILDPLATFORM pratikimprowise/ngork:latest AS ngrok
+FROM --platform=$BUILDPLATFORM alpine:3.15
+COPY --from=ngork /usr/local/bin/ngrok /usr/local/bin/ngrok
+RUN ngork --version
+```
+
+#### Slim
+
+```Dockerfile
+FROM --platform=$BUILDPLATFORM pratikimprowise/ngork:slim AS ngrok
+FROM --platform=$BUILDPLATFORM alpine:3.15
+COPY --from=ngork /usr/local/bin/ngrok /usr/local/bin/ngrok
+RUN ngork --version
+```
+
+## Local
+
+> Create docker buildx builder if using first time
+> ```docker buildx create --use```
+
+```shell
+git clone --depth 1 https://github.com/pratikbalar/tarrer.git tarrer
+cd tarrer
+
+## Build local image
+docker buildx bake
+
+## Build local slim image
+docker buildx bake image-slim
+
+## Build multi-platform image
+docker buildx bake image-all
+
+## Build multi-platform slim image
+docker buildx bake image-all-slim
+```
 
 ---
 
