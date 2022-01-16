@@ -2,7 +2,7 @@ name: build
 
 on:
   repository_dispatch:
-    types: [ngork_version]
+    types: [ngrok_version]
 
 jobs:
   build:
@@ -24,7 +24,7 @@ jobs:
       - name: Build and push
         uses: docker/bake-action@master
         env:
-          VERSION: ${{ github.event.client_payload.ngork_version }}
+          VERSION: ${{ github.event.client_payload.ngrok_version }}
         with:
           targets: |
             image-all

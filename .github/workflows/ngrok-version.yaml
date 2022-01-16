@@ -16,10 +16,10 @@ jobs:
         run: |
           set -x
           curl -Ls 'https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.tgz' -o - | tar -xvzf - -C .
-          ./ngrok --version | awk '{print$3}' > .github/ngork_version
+          ./ngrok --version | awk '{print$3}' > .github/ngrok_version
           echo ::set-output name=changed::false
-          if [[ -n $(git diff .github/ngork_version) ]]; then
-            echo ::set-output name=ngrok_version::$(cat .github/ngork_version)
+          if [[ -n $(git diff .github/ngrok_version) ]]; then
+            echo ::set-output name=ngrok_version::$(cat .github/ngrok_version)
             echo ::set-output name=changed::true
           fi
 
@@ -32,7 +32,7 @@ jobs:
           committer_name: pratikbalar
           committer_email: <pratikbalar@users.noreply.github.com>
           message: "bump: ngrok version"
-          add: ".github/ngork_version"
+          add: ".github/ngrok_version"
 
       - name: Repository Dispatch
         if: ${{ steps.vars.outputs.changed }}
@@ -40,5 +40,5 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           repository: pratikbalar/docker-ngrok-multiarch
-          event-type: ngork_version
-          client-payload: '{"ngork_version": "${{ steps.vars.outputs.ngrok_version }}"}'
+          event-type: ngrok_version
+          client-payload: '{"ngrok_version": "${{ steps.vars.outputs.ngrok_version }}"}'
