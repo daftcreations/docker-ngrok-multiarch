@@ -1,48 +1,73 @@
 # syntax = docker/dockerfile:1.3
 
+ARG GO_VERSION=1.17
+
+FROM --platform=$BUILDPLATFORM crazymax/goreleaser-xx:latest AS goreleaser-xx
 FROM --platform=$BUILDPLATFORM pratikimprowise/upx:3.96 AS upx
-FROM --platform=$BUILDPLATFORM alpine:3.15 AS base
-SHELL ["/bin/sh","-cex"]
-WORKDIR /tmp
-# Create appuser.
-ENV USER=appuser
-ENV UID=1001
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid "${UID}" \
-    "${USER}"ex
-
-FROM base AS builder
-ARG TARGETOS TARGETARCH
-RUN apk --update add --no-cache curl git ca-certificates && \
- update-ca-certificates
-RUN curl -Ls 'https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-'${TARGETOS}'-'${TARGETARCH}'.tgz' -o - | tar -xvzf - -C .
-
-FROM builder AS bin-slim
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine AS base
+COPY --from=goreleaser-xx / /
 COPY --from=upx / /
-RUN upx -v --ultra-brute --best ngrok || true
+ENV CGO_ENABLED=0
+ENV GO111MODULE=auto
+RUN apk --update add --no-cache git
+WORKDIR /src
+
+FROM base AS vendored
+RUN --mount=type=bind,target=.,rw \
+  --mount=type=cache,target=/go/pkg/mod \
+  go mod tidy && go mod download
+
+FROM vendored AS bin
+ARG TARGETPLATFORM
+RUN --mount=type=bind,source=.,target=/src,rw \
+  --mount=type=cache,target=/root/.cache \
+  --mount=type=cache,target=/go/pkg/mod \
+  goreleaser-xx --debug \
+    --name="tarrer" \
+    --main="." \
+    --dist="/out" \
+    --artifacts="bin" \
+    --artifacts="archive" \
+    --snapshot="no"
+
+FROM scratch as fat
+COPY --from=bin /usr/local/bin/tarrer /usr/local/bin/tarrer
+ENTRYPOINT ["/usr/local/bin/tarrer"]
+
+FROM vendored AS bin-slim
+ARG TARGETPLATFORM
+RUN --mount=type=bind,source=.,target=/src,rw \
+  --mount=type=cache,target=/root/.cache \
+  --mount=type=cache,target=/go/pkg/mod \
+  goreleaser-xx --debug \
+    --name="tarrer-slim" \
+    --ldflags="-s -w" \
+    --flags="-trimpath" \
+    --main="." \
+    --dist="/out" \
+    --artifacts="bin" \
+    --artifacts="archive" \
+    --snapshot="no" \
+    --post-hooks="sh -c 'upx -v --ultra-brute --best -o /usr/local/bin/{{ .ProjectName }}{{ .Ext }} || true' "
 
 FROM scratch as slim
-COPY --from=builder  /etc/passwd /etc/passwd
-COPY --from=builder  /etc/group  /etc/group
-COPY --from=builder  /etc/ssl/certs/ /etc/ssl/certs/
-COPY --from=bin-slim /tmp/ngrok /usr/local/bin/ngrok
-USER appuser:appuser
-WORKDIR /home
-ENV HOME /home
-ENTRYPOINT ["/usr/local/bin/ngrok"]
+COPY --from=bin-slim /usr/local/bin/tarrer-slim /usr/local/bin/tarrer
+ENTRYPOINT ["/usr/local/bin/tarrer"]
 
-# RUN ./ngrok update
-FROM scratch
-COPY --from=builder /etc/passwd /etc/passwd
-COPY --from=builder /etc/group /etc/group
-COPY --from=builder /etc/ssl/certs/ /etc/ssl/certs/
-COPY --from=builder /tmp/ngrok /usr/local/bin/ngrok
-USER appuser:appuser
-WORKDIR /home
-ENV HOME /home
-ENTRYPOINT ["/usr/local/bin/ngrok"]
+## get binary out
+### non slim binary
+FROM scratch AS artifact
+COPY --from=bin /out /
+###
+
+### slim binary
+FROM scratch AS artifact-slim
+COPY --from=bin-slim /out /
+###
+
+### All binaries
+FROM scratch AS artifact-all
+COPY --from=bin /out /
+COPY --from=bin-slim /out /
+###
+##

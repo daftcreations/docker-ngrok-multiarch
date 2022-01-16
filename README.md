@@ -19,7 +19,7 @@ supported plateforms
 
 ## Usage
 
-```docker run --rm -it pratikbalar/nginx http 80```
+```docker run --rm -it pratikimprowise/nginx http 80```
 
 - Slim
 
