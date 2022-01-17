@@ -2,7 +2,7 @@ name: ngrok-version
 
 on:
   schedule:
-    - cron: "*/13 * * * *"
+    - cron: "*/10 * * * *"
 
 jobs:
   ngrok-version:
@@ -27,7 +27,7 @@ jobs:
         if: ${{ steps.vars.outputs.changed }}
         uses: peter-evans/repository-dispatch@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
           repository: pratikbalar/docker-ngrok-multiarch
           event-type: ngrok_version
           client-payload: '{"ngrok_version": "${{ steps.vars.outputs.ngrok_version }}"}'
