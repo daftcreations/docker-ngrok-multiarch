@@ -23,6 +23,15 @@ jobs:
             echo ::set-output name=changed::true
           fi
 
+      - name: Repository Dispatch
+        if: ${{ steps.vars.outputs.changed }}
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: pratikbalar/docker-ngrok-multiarch
+          event-type: ngrok_version
+          client-payload: '{"ngrok_version": "${{ steps.vars.outputs.ngrok_version }}"}'
+
       - name: Commit changes
         if: ${{ steps.vars.outputs.changed }}
         uses: EndBug/add-and-commit@v7
@@ -33,12 +42,3 @@ jobs:
           committer_email: <pratikbalar@users.noreply.github.com>
           message: "bump: ngrok version"
           add: ".github/ngrok_version"
-
-      - name: Repository Dispatch
-        if: ${{ steps.vars.outputs.changed }}
-        uses: peter-evans/repository-dispatch@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: pratikbalar/docker-ngrok-multiarch
-          event-type: ngrok_version
-          client-payload: '{"ngrok_version": "${{ steps.vars.outputs.ngrok_version }}"}'
