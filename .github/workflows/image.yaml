@@ -8,6 +8,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - run: |
+          set -x +e
+          printenv
+          echo ${{ github.event.client_payload.ngrok_version }}
+          echo ${{ github.event.client_payload }}
+          echo ${{ github.event }}
+
       - uses: actions/checkout@v2
 
       - uses: docker/setup-qemu-action@v1
