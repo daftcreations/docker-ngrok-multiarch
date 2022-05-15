@@ -1,5 +1,5 @@
 variable "REPO" {
-  default = "pratikimprowise/ngrok"
+  default = "pratikbin/ngrok"
 }
 
 variable "VERSION" {
