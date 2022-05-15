@@ -2,7 +2,7 @@ name: ngrok-version
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "0 * * * *"
 
 jobs:
   ngrok-version:
@@ -16,7 +16,7 @@ jobs:
         run: |
           set -x
           curl -Ls 'https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.tgz' -o - | tar -xvzf - -C .
-          ./ngrok --version | awk '{print$3}' > .github/ngrok_version
+          ./ngrok --version | awk '{print$3}' >.github/ngrok_version
           echo ::set-output name=changed::false
           if [[ -n $(git diff .github/ngrok_version) ]]; then
             echo ::set-output name=ngrok_version::$(cat .github/ngrok_version)

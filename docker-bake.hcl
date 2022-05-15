@@ -6,24 +6,72 @@ variable "VERSION" {
   default = "edge"
 }
 
-variable "TAGS" {
+variable "ALPINE_VERSION" {
+  default = "3.15"
+}
+
+variable "standard-root" {
   default = [
     "${REPO}:latest",
     "${REPO}:${VERSION}",
   ]
 }
 
-variable "TAGS_SLIM" {
+variable "standard-nonroot" {
+  default = [
+    "${REPO}:nonroot",
+    "${REPO}:nonroot-${VERSION}",
+  ]
+}
+
+variable "slim-root" {
   default = [
     "${REPO}:slim",
-    "${REPO}:edge-slim",
-    "${REPO}:${VERSION}-slim",
+    "${REPO}:slim-edge",
+    "${REPO}:slim-${VERSION}",
+  ]
+}
+
+variable "slim-nonroot" {
+  default = [
+    "${REPO}:slim-nonroot",
+    "${REPO}:slim-nonroot-edge",
+    "${REPO}:slim-nonroot-${VERSION}",
+  ]
+}
+
+variable "alpine-root" {
+  default = [
+    "${REPO}:alpine",
+    "${REPO}:alpine-${VERSION}",
+  ]
+}
+
+variable "alpine-noonroot" {
+  default = [
+    "${REPO}:alpine-noonroot",
+    "${REPO}:alpine-noonroot-${VERSION}",
+  ]
+}
+
+variable "alpine-slim-root" {
+  default = [
+    "${REPO}:alpine-slim",
+    "${REPO}:alpine-slim-${VERSION}",
+  ]
+}
+
+variable "alpine-slim-nonroot" {
+  default = [
+    "${REPO}:alpine-slim-nonroot",
+    "${REPO}:alpine-slim-nonroot-${VERSION}",
   ]
 }
 
 target "_common" {
   args = {
-    NGROK_VERSION = VERSION
+    NGROK_VERSION  = VERSION
+    ALPINE_VERSION = ALPINE_VERSION
   }
 }
 
@@ -36,20 +84,11 @@ target "_labels" {
     "org.opencontainers.image.version"       = "${VERSION}",
     "org.opencontainers.image.revision"      = "${VERSION}",
     "org.opencontainers.image.source"        = "ngrok.com",
-    "org.opencontainers.image.documentation" = "https://github.com/pratikbalar/docker-ngork-multiarch",
+    "org.opencontainers.image.documentation" = "https://github.com/pratikbin/docker-ngork-multiarch",
   }
 }
 
-target "_slim" {
-  target = "slim"
-  tags   = TAGS_SLIM
-}
-
-target "_fat" {
-  tags = TAGS
-}
-
-target "image-platform" {
+target "image-platforms" {
   platforms = [
     "linux/arm64",
     "linux/arm/v6",
@@ -61,28 +100,92 @@ target "image-platform" {
   ]
 }
 
+target "_standard-root" {
+  target = "standard-root"
+  tags   = standard-root
+}
+
+target "_standard-nonroot" {
+  target = "standard-nonroot"
+  tags   = standard-nonroot
+}
+
+target "_slim-root" {
+  target = "slim-root"
+  tags   = slim-root
+}
+
+target "_slim-nonroot" {
+  target = "slim-nonroot"
+  tags   = slim-nonroot
+}
+
+target "_alpine-root" {
+  target = "alpine-root"
+  tags   = alpine-root
+}
+
+target "_alpine-noonroot" {
+  target = "alpine-noonroot"
+  tags   = alpine-noonroot
+}
+
+target "_alpine-slim-root" {
+  target = "alpine-slim-root"
+  tags   = alpine-slim-root
+}
+
+target "_alpine-slim-nonroot" {
+  target = "alpine-slim-nonroot"
+  tags   = alpine-slim-nonroot
+}
+
 group "default" {
-  targets = ["image-local"]
+  targets = ["local"]
 }
 
-# Creating fat container image for local docker
-target "image-local" {
-  inherits = ["_common", "_fat", "_labels"]
+target "local" {
+  inherits = ["_common", "_standard-root", "_labels"]
   output   = ["type=docker"]
 }
 
-# Creating slim container image for local docker
-target "image-slim" {
-  inherits = ["_common", "_slim", "_labels"]
+target "local-slim" {
+  inherits = ["_common", "_slim-root", "_labels"]
   output   = ["type=docker"]
 }
 
-# Creating fat container image for all platforms
-target "image-all" {
-  inherits = ["_common", "image-platform", "_fat", "_labels"]
+target "_metadata" {
+  inherits = ["_common", "image-platforms", "_labels"]
 }
 
-# Creating slim container image for all platforms
-target "image-all-slim" {
-  inherits = ["_common", "image-platform", "_slim", "_labels"]
+target "standard-root" {
+  inherits = ["_metadata", "_standard-root"]
+}
+
+target "standard-nonroot" {
+  inherits = ["_metadata", "_standard-nonroot"]
+}
+
+target "slim-root" {
+  inherits = ["_metadata", "_slim-root"]
+}
+
+target "slim-nonroot" {
+  inherits = ["_metadata", "_slim-nonroot"]
+}
+
+target "alpine-root" {
+  inherits = ["_metadata", "_alpine-root"]
+}
+
+target "alpine-noonroot" {
+  inherits = ["_metadata", "_alpine-noonroot"]
+}
+
+target "alpine-slim-root" {
+  inherits = ["_metadata", "_alpine-slim-root"]
+}
+
+target "alpine-slim-nonroot" {
+  inherits = ["_metadata", "_alpine-slim-nonroot"]
 }

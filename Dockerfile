@@ -1,48 +1,65 @@
-# syntax = docker/dockerfile:1.3
-
+# syntax = docker/dockerfile:latest
+ARG ALPINE_VERSION=3.15
 FROM --platform=$BUILDPLATFORM pratikimprowise/upx:3.96 AS upx
-FROM --platform=$BUILDPLATFORM alpine:3.15 AS base
-SHELL ["/bin/sh","-cex"]
-WORKDIR /tmp
-# Create appuser.
-ENV USER=appuser
-ENV UID=1001
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid "${UID}" \
-    "${USER}"ex
+FROM --platform=$BUILDPLATFORM gcr.io/distroless/base as certs
+FROM --platform=$BUILDPLATFORM alpine:$ALPINE_VERSION AS user
+RUN addgroup -S ngork -g 65432 && adduser -S ngrok -h /home/ngrok -G ngork -u 65432
 
-FROM base AS builder
+FROM --platform=$BUILDPLATFORM alpine:$ALPINE_VERSION AS builder
+WORKDIR /tmp
 ARG TARGETOS TARGETARCH
-RUN apk --update add --no-cache curl git ca-certificates && \
- update-ca-certificates
+RUN apk --update add --no-cache curl
 RUN curl -Ls 'https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-'${TARGETOS}'-'${TARGETARCH}'.tgz' -o - | tar -xvzf - -C .
 
-FROM builder AS bin-slim
+FROM builder AS slimbinary
 COPY --from=upx / /
 RUN upx -v --ultra-brute --best ngrok || true
 
-FROM scratch as slim
+FROM scratch as scratch-nonroot-base
 COPY --from=builder  /etc/passwd /etc/passwd
 COPY --from=builder  /etc/group  /etc/group
-COPY --from=builder  /etc/ssl/certs/ /etc/ssl/certs/
-COPY --from=bin-slim /tmp/ngrok /usr/local/bin/ngrok
-USER appuser:appuser
-WORKDIR /home
-ENV HOME /home
+COPY --from=certs  /etc/ssl/certs/ /etc/ssl/certs/
+USER ngork:ngork
+WORKDIR /tmp
+WORKDIR /home/ngrok
 ENTRYPOINT ["/usr/local/bin/ngrok"]
 
-# RUN ./ngrok update
-FROM scratch
-COPY --from=builder /etc/passwd /etc/passwd
-COPY --from=builder /etc/group /etc/group
-COPY --from=builder /etc/ssl/certs/ /etc/ssl/certs/
-COPY --from=builder /tmp/ngrok /usr/local/bin/ngrok
-USER appuser:appuser
-WORKDIR /home
-ENV HOME /home
+FROM scratch as scratch-root-base
+COPY --from=certs  /etc/ssl/certs/ /etc/ssl/certs/
+WORKDIR /tmp
+WORKDIR /
 ENTRYPOINT ["/usr/local/bin/ngrok"]
+
+FROM alpine:$ALPINE_VERSION as alpine-nonroot
+RUN addgroup -S ngork -g 65432 && adduser -S ngrok -h /home/ngrok -G ngork -u 65432
+USER 65432:65432
+WORKDIR /tmp
+WORKDIR /home/ngrok
+ENTRYPOINT ["/usr/local/bin/ngrok"]
+
+FROM alpine:$ALPINE_VERSION as alpine-root
+ENTRYPOINT ["/usr/local/bin/ngrok"]
+
+FROM scratch-root-base as standard-root
+COPY --from=builder /tmp/ngrok /usr/local/bin/ngrok
+
+FROM scratch-root-base as slim-root
+COPY --from=slimbinary /tmp/ngrok /usr/local/bin/ngrok
+
+FROM scratch-nonroot-base as standard-nonroot
+COPY --from=builder /tmp/ngrok /usr/local/bin/ngrok
+
+FROM scratch-nonroot-base as slim-nonroot
+COPY --from=slimbinary /tmp/ngrok /usr/local/bin/ngrok
+
+FROM alpine-nonroot as alpine-standard-nonroot
+COPY --from=builder /tmp/ngrok /usr/local/bin/ngrok
+
+FROM alpine-nonroot as alpine-slim-nonroot
+COPY --from=slimbinary /tmp/ngrok /usr/local/bin/ngrok
+
+FROM alpine-root as alpine-standard-root
+COPY --from=builder /tmp/ngrok /usr/local/bin/ngrok
+
+FROM alpine-root as alpine-slim-root
+COPY --from=slimbinary /tmp/ngrok /usr/local/bin/ngrok

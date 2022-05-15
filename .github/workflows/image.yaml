@@ -3,6 +3,7 @@ name: build
 on:
   repository_dispatch:
     types: [ngrok_version]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -26,12 +27,17 @@ jobs:
         env:
           VERSION: ${{ github.event.client_payload.ngrok_version }}
         with:
-          targets: |
-            image-all
-            image-all-slim
-
           push: ${{ github.event_name != 'pull_request' }}
           files: docker-bake.hcl
+          targets: |
+            standard-root
+            standard-nonroot
+            slim-root
+            slim-nonroot
+            alpine-root
+            alpine-noonroot
+            alpine-slim-root
+            alpine-slim-nonroot
           set: |
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
