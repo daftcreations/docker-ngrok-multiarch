@@ -1,88 +1,43 @@
 # docker-ngrok-multiarch
 
-Ngrok scratch container image
+Ngrok container image
 
-> Slim variant is availabe, compressed through [UPX](https://github.com/upx/upx).
-> Original binary size ~`29MB`
-> Slim varient size ~`12MB`
+Available in 8 varients
+  - Scratch
+  - Scratch slim
+  - Scratch nonroot (ngork:ngork)
+  - Scratch slim nonroot (ngork:ngork)
+  - Alpine
+  - Alpine slim
+  - Alpine nonroot (ngork:ngork)
+  - Alpine slim nonroot (ngork:ngork)
 
 supported plateforms
-
-- linux/amd64
-- linux/arm64
-- linux/arm/v6
-- linux/arm/v7
-- linux/386
-- linux/mips64le
-- linux/mips64
-- linux/ppc64le
+  - Linux (`amd64`, `arm64`, `arm/v6`, `arm/v7`, `386`, `mips64le`, `mips64`, `ppc64le`)
 
 ## Usage
 
-```docker run --rm -it pratikimprowise/nginx http 80```
-
-- Slim
-
-  ```docker run --rm -it pratikbalar/nginx:slim http 80```
-
-### Use it in Container
-
-```Dockerfile
-FROM pratikimprowise/ngork:latest AS ngrok
-FROM alpine:3.15
-COPY --from=ngork /usr/local/bin/ngrok /usr/local/bin/ngrok
-RUN ngork --version
+```shell
+docker run --rm -it --name ngork pratikbin/ngork http 80
 ```
 
-#### Slim variant
+## Development
 
-```Dockerfile
-FROM pratikimprowise/ngork:slim AS ngrok
-FROM alpine:3.15
-COPY --from=ngork /usr/local/bin/ngrok /usr/local/bin/ngrok
-RUN ngork --version
-```
-
-### Buildx
-
-```Dockerfile
-FROM --platform=$BUILDPLATFORM pratikimprowise/ngork:latest AS ngrok
-FROM --platform=$BUILDPLATFORM alpine:3.15
-COPY --from=ngork /usr/local/bin/ngrok /usr/local/bin/ngrok
-RUN ngork --version
-```
-
-#### Slim
-
-```Dockerfile
-FROM --platform=$BUILDPLATFORM pratikimprowise/ngork:slim AS ngrok
-FROM --platform=$BUILDPLATFORM alpine:3.15
-COPY --from=ngork /usr/local/bin/ngrok /usr/local/bin/ngrok
-RUN ngork --version
-```
-
-## Local
-
-> Create docker buildx builder if using first time
-> ```docker buildx create --use```
+Install emulators
 
 ```shell
-git clone --depth 1 https://github.com/pratikbalar/tarrer.git tarrer
-cd tarrer
+docker buildx create --name multiarch --use
+docker run --privileged --rm tonistiigi/binfmt --install all
+```
+
+```shell
+git clone --depth 1 https://github.com/pratikbin/docker-ngrok-multiarch.git docker-ngrok-multiarch
+cd docker-ngrok-multiarch
 
 ## Build local image
 docker buildx bake
-
-## Build local slim image
-docker buildx bake image-slim
-
-## Build multi-platform image
-docker buildx bake image-all
-
-## Build multi-platform slim image
-docker buildx bake image-all-slim
 ```
 
 ---
 
-**May the Source Be With You**
+*May the Source Be With You*

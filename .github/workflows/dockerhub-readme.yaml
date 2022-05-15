@@ -9,7 +9,7 @@ on:
       - "**.md"
 
 env:
-  DOCKERHUB_SLUG: pratikimprowise/ngrok
+  DOCKERHUB_SLUG: pratikbin/ngrok
 
 jobs:
   build:
